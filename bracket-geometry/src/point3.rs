@@ -347,6 +347,100 @@ mod tests {
     }
 
     #[test]
+    fn new_point3_defaults_to_zero_on_failed_conversion() {
+        let pt = Point3::new(i64::MAX, 2_i64, 3_i64);
+        assert_eq!(pt, Point3::constant(0, 2, 3));
+    }
+
+    #[test]
+    fn constant_point3() {
+        let pt = Point3::constant(1, 2, 3);
+        assert_eq!(pt.x, 1);
+        assert_eq!(pt.y, 2);
+        assert_eq!(pt.z, 3);
+    }
+
+    #[test]
+    fn zero_point3() {
+        assert_eq!(Point3::zero(), Point3::constant(0, 0, 0));
+    }
+
+    #[test]
+    fn point3_from_tuple() {
+        assert_eq!(Point3::from_tuple((1, 2, 3)), Point3::constant(1, 2, 3));
+    }
+
+    #[test]
+    fn point3_from_generic_tuple() {
+        assert_eq!(
+            Point3::from_tuple((1_u16, 2_u16, 3_u16)),
+            Point3::constant(1, 2, 3)
+        );
+    }
+
+    #[test]
+    fn point3_from_tuple_defaults_to_zero_on_failed_conversion() {
+        let pt = Point3::from_tuple((1_i64, i64::MAX, 3_i64));
+        assert_eq!(pt, Point3::constant(1, 0, 3));
+    }
+
+    #[test]
+    fn point3_to_index() {
+        let pt = Point3::new(2, 1, 3);
+        assert_eq!(pt.to_index(10, 5), 162);
+    }
+
+    #[test]
+    #[should_panic(expected = "called `Option::unwrap()` on a `None` value")]
+    fn point3_to_index_panics_for_negative_coordinates() {
+        let pt = Point3::new(-1, 0, 0);
+        let _ = pt.to_index(10, 5);
+    }
+
+    #[test]
+    fn point3_to_tuple() {
+        let pt = Point3::new(1, 2, 3);
+        assert_eq!(pt.to_tuple(), (1, 2, 3));
+    }
+
+    #[test]
+    fn point3_to_unsigned_tuple() {
+        let pt = Point3::new(1, 2, 3);
+        assert_eq!(pt.to_unsigned_tuple(), (1_usize, 2_usize, 3_usize));
+    }
+
+    #[test]
+    #[should_panic(expected = "called `Option::unwrap()` on a `None` value")]
+    fn point3_to_unsigned_tuple_panics_for_negative_coordinates() {
+        let pt = Point3::new(1, -2, 3);
+        let _ = pt.to_unsigned_tuple();
+    }
+
+    #[test]
+    fn point3_to_vec3() {
+        let vec = Point3::new(1, 2, 3).to_vec3();
+        assert!((vec.x - 1.0).abs() < f32::EPSILON);
+        assert!((vec.y - 2.0).abs() < f32::EPSILON);
+        assert!((vec.z - 3.0).abs() < f32::EPSILON);
+    }
+
+    #[test]
+    fn point3_from_vec3() {
+        let vec = ultraviolet::Vec3::new(1.0, 2.0, 3.0);
+        assert_eq!(Point3::from_vec3(vec), Point3::from(vec));
+    }
+
+    #[test]
+    fn point3_from_i32_tuple() {
+        assert_eq!(Point3::from((1, 2, 3)), Point3::constant(1, 2, 3));
+    }
+
+    #[test]
+    fn point3_from_f32_tuple() {
+        assert_eq!(Point3::from((1.0, 2.0, 3.0)), Point3::constant(1, 2, 3));
+    }
+
+    #[test]
     fn add_point_to_point3() {
         let pt = Point3::new(0, 0, 0);
         let p2 = pt + Point3::new(1, 2, 3);
