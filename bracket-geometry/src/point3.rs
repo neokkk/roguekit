@@ -3,8 +3,8 @@ use std::ops;
 use ultraviolet::Vec3;
 
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[derive(Eq, PartialEq, Copy, Clone, Debug)]
-/// Helper struct defining a 2D point in space.
+#[derive(Eq, PartialEq, Copy, Clone, Debug, Hash)]
+/// Helper struct defining a 3D point in space.
 pub struct Point3 {
     /// The 3D point's X location
     pub x: i32,
@@ -26,37 +26,96 @@ impl bevy::ecs::component::Component for Point3 {
 
 impl Point3 {
     /// Create a new point from an x/y/z coordinate.
-    ///
-    /// # Panics
-    ///
-    /// This can panic if X, Y, or Z are not convertible to an `i32`.
-    pub fn new<T>(x: T, y: T, z: T) -> Self
+    #[inline]
+    #[must_use]
+    pub fn new<T>(x: T, y: T, z: T) -> Point3
     where
         T: TryInto<i32>,
     {
-        Self {
-            x: x.try_into().ok().unwrap(),
-            y: y.try_into().ok().unwrap(),
-            z: z.try_into().ok().unwrap(),
+        Point3 {
+            x: x.try_into().ok().unwrap_or(0),
+            y: y.try_into().ok().unwrap_or(0),
+            z: z.try_into().ok().unwrap_or(0),
         }
     }
 
-    /// Create a point from an x/y/z tuple
+    /// Create a new point from i32, this can be constant
     #[must_use]
-    pub fn from_tuple(t: (i32, i32, i32)) -> Self {
-        Self {
-            x: t.0,
-            y: t.1,
-            z: t.2,
-        }
+    pub const fn constant(x: i32, y: i32, z: i32) -> Point3 {
+        Point3 { x, y, z }
+    }
+
+    /// Create a zero point
+    #[inline]
+    #[must_use]
+    pub fn zero() -> Point3 {
+        Point3 { x: 0, y: 0, z: 0 }
+    }
+
+    /// Create a point from an x/y/z tuple.
+    #[inline]
+    #[must_use]
+    pub fn from_tuple<T>(t: (T, T, T)) -> Self
+    where
+        T: TryInto<i32>,
+    {
+        Point3::new(t.0, t.1, t.2)
+    }
+
+    /// Helper for 3D map index conversion
+    ///
+    /// # Panics
+    ///
+    /// This can panic if X, Y, or Z are not convertible to a `usize`, or if width or height are not convertible to a `usize`.
+    #[inline]
+    #[must_use]
+    #[allow(clippy::many_single_char_names)]
+    pub fn to_index<T>(self, width: T, height: T) -> usize
+    where
+        T: TryInto<usize>,
+    {
+        let x: usize = self.x.try_into().ok().unwrap();
+        let y: usize = self.y.try_into().ok().unwrap();
+        let z: usize = self.z.try_into().ok().unwrap();
+        let w: usize = width.try_into().ok().unwrap();
+        let h: usize = height.try_into().ok().unwrap();
+        (z * w * h) + (y * w) + x
+    }
+
+    /// Converts the point to an i32 tuple
+    #[must_use]
+    pub fn to_tuple(self) -> (i32, i32, i32) {
+        (self.x, self.y, self.z)
+    }
+
+    /// Converts the point to a usize tuple
+    ///
+    /// # Panics
+    ///
+    /// This can panic if X, Y, or Z are not convertible to a `usize`.
+    #[must_use]
+    pub fn to_unsigned_tuple(self) -> (usize, usize, usize) {
+        (
+            self.x.try_into().ok().unwrap(),
+            self.y.try_into().ok().unwrap(),
+            self.z.try_into().ok().unwrap(),
+        )
     }
 
     /// Converts into an `UltraViolet` Vec3
+    #[must_use]
+    #[allow(clippy::cast_precision_loss)]
+    #[allow(clippy::cast_possible_truncation)]
+    pub fn to_vec3(&self) -> Vec3 {
+        Vec3::new(self.x as f32, self.y as f32, self.z as f32)
+    }
+
+    /// Creates a point from an `UltraViolet` Vec3
     #[allow(clippy::cast_precision_loss)]
     #[allow(clippy::cast_possible_truncation)]
     #[must_use]
-    pub fn to_vec3(&self) -> Vec3 {
-        Vec3::new(self.x as f32, self.y as f32, self.z as f32)
+    pub fn from_vec3(v: Vec3) -> Self {
+        Self::new(v.x as i32, v.y as i32, v.z as i32)
     }
 
     /*
@@ -65,6 +124,28 @@ impl Point3 {
         Vec3i::new(self.x, self.y, self.z)
     }
     */
+}
+
+impl From<(i32, i32, i32)> for Point3 {
+    fn from(item: (i32, i32, i32)) -> Self {
+        Self {
+            x: item.0,
+            y: item.1,
+            z: item.2,
+        }
+    }
+}
+
+#[allow(clippy::cast_precision_loss)]
+#[allow(clippy::cast_possible_truncation)]
+impl From<(f32, f32, f32)> for Point3 {
+    fn from(item: (f32, f32, f32)) -> Self {
+        Self {
+            x: item.0 as i32,
+            y: item.1 as i32,
+            z: item.2 as i32,
+        }
+    }
 }
 
 #[allow(clippy::cast_precision_loss)]
