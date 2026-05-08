@@ -22,7 +22,9 @@ impl specs::prelude::Component for Point {
 
 #[cfg(feature = "bevy")]
 impl bevy::ecs::component::Component for Point {
-    type Storage = bevy::ecs::component::TableStorage;
+    const STORAGE_TYPE: bevy::ecs::component::StorageType =
+        bevy::ecs::component::StorageType::Table;
+    type Mutability = bevy::ecs::component::Mutable;
 }
 
 impl Point {
