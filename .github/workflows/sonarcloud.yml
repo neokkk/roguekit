@@ -25,11 +25,22 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
-
+      - name: Install stable toolchain
+        uses: dtolnay/rust-toolchain@stable
+      - name: Install cargo-tarpaulin
+        if: ${{ env.SONAR_TOKEN != '' }}
+        run: cargo install cargo-tarpaulin
+      - name: Cache cargo dependencies
+        uses: Swatinem/rust-cache@v2
+      - name: Build project
+        if: ${{ env.SONAR_TOKEN != '' }}
+        run: cargo build --all-features
+      - name: Generate coverage report
+        if: ${{ env.SONAR_TOKEN != '' }}
+        run: cargo tarpaulin --out Lcov --output-dir coverage
       - name: Skip scan when SONAR_TOKEN is missing
         if: ${{ env.SONAR_TOKEN == '' }}
         run: echo "SONAR_TOKEN is not configured. Skipping SonarCloud scan."
-
       - name: Run SonarCloud scan
         if: ${{ env.SONAR_TOKEN != '' }}
         uses: SonarSource/sonarqube-scan-action@v6
