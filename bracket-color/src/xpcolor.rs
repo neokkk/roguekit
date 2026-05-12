@@ -97,7 +97,6 @@ mod tests {
     #[test]
     fn read_xp_color_reads_three_bytes() {
         let mut input = &[1_u8, 2, 3][..];
-
         let color = XpColor::read(&mut input).expect("valid RGB bytes");
 
         assert_eq!(color, XpColor::new(1, 2, 3));
@@ -106,7 +105,6 @@ mod tests {
     #[test]
     fn read_xp_color_returns_error_on_short_input() {
         let mut input = &[1_u8, 2][..];
-
         let result = XpColor::read(&mut input);
 
         assert!(result.is_err());

@@ -300,7 +300,6 @@ mod tests {
     #[case(4, vec![0.0, 0.25, 0.5, 0.75, 1.0])]
     fn rgba_lerp_iterates_from_start_to_end(
         #[case] steps: usize,
-
         #[case] expected_values: Vec<f32>,
     ) {
         let mut lerp = RgbaLerp::new(
