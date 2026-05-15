@@ -509,6 +509,12 @@ mod tests {
         assert_rgb_eq(rgb, 0.25, 0.5, 0.75);
     }
 
+    #[test]
+    fn hsv_conversion_delegates_to_hsv_to_rgb() {
+        let rgb = RGB::from(HSV::from_f32(120.0 / 360.0, 1.0, 1.0));
+        assert_rgb_eq(rgb, 0.0, 1.0, 0.0);
+    }
+
     #[rstest]
     #[case(RGB::from_f32(0.25, 0.5, 0.75) + 0.125, 0.375, 0.625, 0.875)]
     #[case(
@@ -569,6 +575,14 @@ mod tests {
         assert_hsv_eq(hsv, 60.0 / 360.0, 1.0, 128.0 / 255.0);
     }
 
+    #[test]
+    fn convert_magenta_to_hsv_wraps_red_hue() {
+        let rgb = RGB::from_f32(1.0, 0.0, 0.5);
+        let hsv = rgb.to_hsv();
+
+        assert_hsv_eq(hsv, 330.0 / 360.0, 1.0, 1.0);
+    }
+
     #[rstest]
     #[case(0.0)]
     #[case(0.5)]
@@ -623,18 +637,46 @@ mod tests {
 
     #[rstest]
     #[case("")]
+    #[case("#")]
+    #[case("#F")]
+    #[case("#FF")]
     #[case("#FFF")]
     #[case("#FFFF")]
+    #[case("#FFFFF")]
     #[case("#FFFFFF00")]
     fn parse_hex_rejects_invalid_length(#[case] hex: &str) {
         let err = RGB::from_hex(hex).unwrap_err();
         assert_eq!(err, HtmlColorConversionError::InvalidStringLength);
     }
 
-    #[test]
-    fn parse_hex_rejects_invalid_character() {
-        let err = RGB::from_hex("#GG0000").unwrap_err();
+    #[rstest]
+    #[case("#GG0000")]
+    #[case("#FG0000")]
+    #[case("#FFG000")]
+    #[case("#FF0G00")]
+    #[case("#FF00G0")]
+    #[case("#FF000G")]
+    fn parse_hex_rejects_invalid_character(#[case] hex: &str) {
+        let err = RGB::from_hex(hex).unwrap_err();
         assert_eq!(err, HtmlColorConversionError::InvalidCharacter);
+    }
+
+    #[cfg(feature = "bevy")]
+    #[test]
+    fn bevy_color_conversion_preserves_rgb_channels() {
+        let rgb = RGB::from(bevy::prelude::Color::srgb(0.25, 0.5, 0.75));
+        assert_rgb_eq(rgb, 0.25, 0.5, 0.75);
+    }
+
+    #[cfg(feature = "bevy")]
+    #[test]
+    fn rgb_conversion_to_bevy_color_preserves_rgb_channels() {
+        let color = bevy::prelude::Color::from(RGB::from_f32(0.25, 0.5, 0.75));
+        let srgba = color.to_srgba();
+
+        assert_approx_eq(srgba.red, 0.25);
+        assert_approx_eq(srgba.green, 0.5);
+        assert_approx_eq(srgba.blue, 0.75);
     }
 
     #[test]
