@@ -34,8 +34,8 @@ pub struct WgpuLink<'a> {
     pub backing_buffer: Framebuffer,
 }
 
-unsafe impl Send for PlatformGL {}
-unsafe impl Sync for PlatformGL {}
+unsafe impl<'a> Send for PlatformGL<'a> {}
+unsafe impl<'a> Sync for PlatformGL<'a> {}
 
 pub struct WrappedContext {
     pub el: EventLoop<()>,
