@@ -145,12 +145,12 @@ impl<T: Algorithm2D + ?Sized> FovScanner<'_, T> {
                     prev_tile = Some(tile);
                 }
             }
-            if let Some(prev_tile) = prev_tile {
-                if !self.is_opaque(prev_tile) {
-                    let mut next_line = scanline.next();
-                    next_line.start_slope = current_start_slope;
-                    stack.push(next_line);
-                }
+            if let Some(prev_tile) = prev_tile
+                && !self.is_opaque(prev_tile)
+            {
+                let mut next_line = scanline.next();
+                next_line.start_slope = current_start_slope;
+                stack.push(next_line);
             }
         }
     }

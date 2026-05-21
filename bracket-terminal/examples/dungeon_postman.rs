@@ -547,15 +547,15 @@ impl State {
             }
         }
 
-        if let Some(kpos) = self.key_pos {
-            if self.map.visible[kpos] {
-                let (kx, ky) = xy(kpos);
-                draw_batch.print_color(
-                    Point::new(kx, ky),
-                    "k",
-                    ColorPair::new(RGB::from_f32(1.0, 0.85, 0.0), RGB::named(BLACK)),
-                );
-            }
+        if let Some(kpos) = self.key_pos
+            && self.map.visible[kpos]
+        {
+            let (kx, ky) = xy(kpos);
+            draw_batch.print_color(
+                Point::new(kx, ky),
+                "k",
+                ColorPair::new(RGB::from_f32(1.0, 0.85, 0.0), RGB::named(BLACK)),
+            );
         }
 
         let (px, py) = xy(self.player_pos);
